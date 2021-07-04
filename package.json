@@ -1,0 +1,30 @@
+{
+  "name": "fashion-segmentation",
+  "version": "1.0.0",
+  "description": "Detect which pixels of your product images actually belong to the product. We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "ts-node examples/nodejs-example.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pubkey/fashion-segmentation.git"
+  },
+  "author": "pubkey",
+  "bugs": {
+    "url": "https://github.com/pubkey/fashion-segmentation/issues"
+  },
+  "homepage": "https://github.com/pubkey/fashion-segmentation#readme",
+  "dependencies": {
+    "got": "11.8.2",
+    "mocha": "9.0.2",
+    "rimraf": "3.0.2",
+    "sharp": "0.28.3",
+    "ts-node": "10.0.0",
+    "typescript": "4.3.5"
+  }
+}
