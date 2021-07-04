@@ -33,5 +33,8 @@ jobs:
       - name: Start docker container
         run: docker-compose up -d
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Run nodejs example
         run: npm test
