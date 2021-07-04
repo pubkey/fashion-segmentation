@@ -36,7 +36,24 @@ docker run -e MODEL_NAME=trained_model -p 8501:8501 -v ./trained_model:/models/t
 
 3. Now you can make requests by sending the pixel data of 4 images to the server. You can find an example on how to do this in node.js in the [examples folder](./examples/nodejs-example.ts).
 
+## Example output
 
+Input / output bitmap / output segmentated:
+
+<img src="./output/input.jpg" alt="fashion segmentation input" width="256px" />
+<img src="./output/bitmap.jpg" alt="fashion segmentation input" width="256px" />
+<img src="./output/segmentated.jpg" alt="fashion segmentation input" width="256px" />
+
+Output colors:
+
+```json
+[
+    {
+        "hex": "#f3aca4",
+        "percentage": 100
+    }
+]
+```
 
 # Get a better trained higher resolution model
 

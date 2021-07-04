@@ -72,3 +72,14 @@ export async function clearFolder(folderPath: string): Promise<void> {
 export function wait(timeInMs: number): Promise<void> {
     return new Promise(res => setTimeout(res, timeInMs));
 }
+
+/**
+ * @link https://stackoverflow.com/a/27376421/3443137
+ */
+export function keyWithHighestValue(obj: { [k: string]: number }): string | null {
+    const keys = Object.keys(obj);
+    if (keys.length === 0) {
+        return null;
+    }
+    return keys.reduce((a, b) => obj[a] > obj[b] ? a : b);
+}

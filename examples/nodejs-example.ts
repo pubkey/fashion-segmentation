@@ -7,9 +7,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import sharp, { Sharp } from 'sharp';
 import got from 'got';
-import { clearFolder } from './util';
-import { Dimensions } from './types';
-
+import { clearFolder, keyWithHighestValue } from './util';
+import { ColorRatio, Dimensions } from './types';
+const quantize = require('quantize');
+const rgbHex = require('rgb-hex');
 
 const imagesDir = path.join(__dirname, './images');
 console.log('imagesDir: ' + imagesDir);
@@ -166,6 +167,7 @@ async function run() {
 
 
     console.log('# get an image that only contains segmentated pixels');
+    const allSegmentatedPixels: [number, number, number][] = [];
     const segmentationPixels: number[] = [];
     let i = 0;
     outputPixels.forEach(row => {
@@ -178,6 +180,11 @@ async function run() {
                 segmentationPixels.push(endInputImageBuffer[i]);
                 segmentationPixels.push(endInputImageBuffer[i + 1]);
                 segmentationPixels.push(endInputImageBuffer[i + 2]);
+                allSegmentatedPixels.push([
+                    endInputImageBuffer[i],
+                    endInputImageBuffer[i + 1],
+                    endInputImageBuffer[i + 2]
+                ]);
             }
             i = i + 3;
         });
@@ -190,6 +197,12 @@ async function run() {
         }
     }).toFile(path.join(outputDir, './segmentated.jpg'));
 
+    const colorRatio = await quantizeColorsOfPixels(allSegmentatedPixels);
+    fs.writeFileSync(
+        path.join(outputDir, 'colors.json'),
+        JSON.stringify(colorRatio, null, 4),
+        'utf8'
+    );
 
     console.log(' DONE! check the output folder at ' + outputDir);
 
@@ -219,4 +232,55 @@ export async function resizeToDimension(
             quality: 100,
             chromaSubsampling: '4:4:4'
         })
+}
+
+
+/**
+ * Read out and cluster all non-transparent pixels of the image.
+ * pixels are in the format [r,g,b][]
+ */
+export async function quantizeColorsOfPixels(pixels: number[][]): Promise<ColorRatio[]> {
+    const colorMap = quantize(pixels, 5);
+    const perCluster: { [k: string]: number } = {};
+    pixels.forEach(px => {
+        const isCluster = colorMap.map(px);
+        const str = isCluster.join(',');
+        if (!perCluster[str]) {
+            perCluster[str] = 0;
+        }
+        perCluster[str] = perCluster[str] + 1;
+    });
+
+    // remove small clusters
+    const heighestKey = keyWithHighestValue(perCluster);
+    const min = perCluster[heighestKey as any] / 8;
+    let keepSum = 0;
+    Object.keys(perCluster).forEach(key => {
+        if (perCluster[key] < min) {
+            delete perCluster[key];
+        } else {
+            keepSum += perCluster[key];
+        }
+    });
+
+    let percentSum = 0;
+    if (Object.keys(perCluster).length === 0) {
+        // unknown why this happens, log stuff out to debug later
+        throw new Error('quantizeColorsOfPixels() got no clusters, usePixels.length: ' + pixels.length);
+    }
+    const ret: ColorRatio[] = Object.entries(perCluster).map(([k, amount]) => {
+        const rgb = k.split(',').map(str => parseInt(str, 10));
+        const hexColor = '#' + rgbHex(rgb[0], rgb[1], rgb[2]);
+        const percentage = Math.floor((amount / keepSum * 100));
+        percentSum += percentage;
+        return {
+            hex: hexColor,
+            percentage
+        };
+    });
+
+    const missingBecauseOfRounding = 100 - percentSum;
+    ret[0].percentage = ret[0].percentage + missingBecauseOfRounding;
+
+    return ret;
 }
