@@ -38,8 +38,6 @@ docker run -e MODEL_NAME=trained_model -p 8501:8501 -v ./trained_model:/models/t
 
 ## Example output
 
-Input / output bitmap / output segmentated:
-
 Input                      |  Output bitmap            |  Output segmentated
 :-------------------------:|:-------------------------:|:-------------------------:
 ![](./output/input.jpg)    |  ![](./output/bitmap.jpg) |  ![](./output/segmentated.jpg)
