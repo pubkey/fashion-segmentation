@@ -1,7 +1,7 @@
 # fashion-segmentation
 
 Detect which pixels of your product images actually belong to the product.
-We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated. In the following image you can see that the person wars a jacked, a t-shirt and a jeans. But only with all 4 images, it is clear to the network that the jacked must be segmentated.
+We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated. In the following image you can see that the person wears a jacked, a t-shirt and a jeans. But only with all 4 images, it is clear to the network that the jacked must be segmentated.
 
 <p align="center">
     <img src="./docs/images/fashion-segmentation-input-output.jpg" alt="fashion segmentation input output" />
