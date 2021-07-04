@@ -40,9 +40,9 @@ docker run -e MODEL_NAME=trained_model -p 8501:8501 -v ./trained_model:/models/t
 
 Input / output bitmap / output segmentated:
 
-<img src="./output/input.jpg" alt="fashion segmentation input" width="256px" />
-<img src="./output/bitmap.jpg" alt="fashion segmentation input" width="256px" />
-<img src="./output/segmentated.jpg" alt="fashion segmentation input" width="256px" />
+Input                      |  Output bitmap            |  Output segmentated
+:-------------------------:|:-------------------------:|:-------------------------:
+![](./output/input.jpg)    |  ![](./output/bitmap.jpg) |  ![](./output/segmentated.jpg)
 
 Output colors:
 
