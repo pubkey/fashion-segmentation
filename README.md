@@ -7,7 +7,7 @@ We use up to 4 images as input because on many fashion images, you need multiple
     <img src="./docs/images/fashion-segmentation-input-output.jpg" alt="fashion segmentation input output" />
 </p>
 
-The segmentation data enables you to extract the actual meaning of your product images by calculating the accurate colour or extracting patches and shapes.
+The segmentation data enables you to extract the actual meaning of your product images by calculating the accurate color or extracting patches and shapes.
 
 <p align="center">
     <img src="./docs/images/fashion-segmentation-evaluated.jpg" alt="fashion segmentation evaluated" />
