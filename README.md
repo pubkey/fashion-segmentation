@@ -58,4 +58,4 @@ Output colors:
 
 # Get a better trained higher resolution model
 
-In this repo you can find the low resolution model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [contact me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item.
+In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images (up to 512px), you can [contact me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives.
