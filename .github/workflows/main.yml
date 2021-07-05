@@ -30,6 +30,9 @@ jobs:
         with:
           node-version: "14.x"
 
+      - name: Unzip model
+        run: bash decompress-model.bash
+
       - name: Start docker container
         run: docker-compose up -d
 

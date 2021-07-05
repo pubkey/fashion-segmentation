@@ -20,7 +20,7 @@ const outputDir = path.join(__dirname, '../', 'output');
  * If you need a model with higher resolution you can contact me.
  * (check the README.md)
  */
-const singleImageSize = 512;
+const singleImageSize = 128;
 const singeImageDimensions: Dimensions = {
     width: singleImageSize,
     height: singleImageSize
@@ -33,7 +33,7 @@ async function run() {
         .readdirSync(imagesDir)
         .filter(name => name.endsWith('.jpg'));
     if (imageFileNames.length < 4) {
-        throw new Error('folder has too less images ' + imagesDir + ', you need at least 4 of them');
+        throw new Error('folder has too less images ' + imagesDir + ', you need at least 4 of them. (You can also copy the exisiting ones)');
     }
 
     const imageBuffers = await Promise.all(
