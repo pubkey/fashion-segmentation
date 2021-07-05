@@ -50,7 +50,7 @@ Output colors:
 ```json
 [
     {
-        "hex": "#f3aca4",
+        "hex": "#df042b",
         "percentage": 100
     }
 ]
