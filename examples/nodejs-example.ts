@@ -26,6 +26,15 @@ const singeImageDimensions: Dimensions = {
     height: singleImageSize
 };
 
+
+/**
+ * Every pixel with a model output of more then the activation signal,
+ * will be used in the bitmap and the color detection.
+ * When you increase this value you have less false positives but more false negatives.
+ * When you decrease this value you have more false positives but less false negatives.
+ */
+const activationSignal = 0.5;
+
 async function run() {
     await clearFolder(outputDir);
 
@@ -141,15 +150,11 @@ async function run() {
     const rawPixels: number[] = [];
     outputPixels.forEach(row => {
         row.forEach(nr => {
-            if (nr > 0.5) {
-                rawPixels.push(0);
-                rawPixels.push(0);
-                rawPixels.push(0);
-            } else {
-                rawPixels.push(255);
-                rawPixels.push(255);
-                rawPixels.push(255);
-            }
+            // transform 0-1 number to 0-255 rgb value
+            const val = 255 * nr;
+            rawPixels.push(val);
+            rawPixels.push(val);
+            rawPixels.push(val);
         });
     });
 
@@ -172,7 +177,7 @@ async function run() {
     let i = 0;
     outputPixels.forEach(row => {
         row.forEach(nr => {
-            if (nr > 0.5) {
+            if (nr > activationSignal) {
                 segmentationPixels.push(255);
                 segmentationPixels.push(255);
                 segmentationPixels.push(255);
