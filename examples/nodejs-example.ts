@@ -111,9 +111,13 @@ async function run() {
             for (let w = 0; w < inputImageWidth; w++) {
                 let pixel: any[] = [];
 
-                pixel.push(buffer[b++] / 255.0); /* r */
-                pixel.push(buffer[b++] / 255.0); /* g */
-                pixel.push(buffer[b++] / 255.0); /* b */
+                /**
+                 * We need to transform the 0-255 rgb value
+                 * so a range between -1 and 1 for the model input
+                 */
+                pixel.push((buffer[b++] / 127.5) - 1); /* r */
+                pixel.push((buffer[b++] / 127.5) - 1); /* g */
+                pixel.push((buffer[b++] / 127.5) - 1); /* b */
 
                 line.push(pixel);
             }
