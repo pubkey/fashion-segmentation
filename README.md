@@ -41,11 +41,13 @@ docker run -e MODEL_NAME=trained_model -p 8501:8501 -v ./trained_model:/models/t
 
 (You can reproduce these results by running `npm run test`)
 
-Input                      |  Output bitmap            |  Output segmentated
-:-------------------------:|:-------------------------:|:-------------------------:
-![](./output/input.jpg)    |  ![](./output/bitmap.jpg) |  ![](./output/segmentated.jpg)
+Input                      |  Output bitmap            |  Output segmentated       |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![](./output/0002/input.jpg)    |  ![](./output/0002/bitmap.jpg) |  ![](./output/0002/segmentated.jpg)
+![](./output/0001/input.jpg)    |  ![](./output/0001/bitmap.jpg) |  ![](./output/0001/segmentated.jpg)
+![](./output/0003/input.jpg)    |  ![](./output/0003/bitmap.jpg) |  ![](./output/0003/segmentated.jpg)
 
-Output colors:
+Output colors example:
 
 ```json
 [
@@ -59,3 +61,10 @@ Output colors:
 # Get a better trained higher resolution model
 
 In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [buy it from me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives.
+
+## Example output of the bigger model
+
+Input                      |  Output bitmap            |  Output segmentated
+:-------------------------:|:-------------------------:|:-------------------------:
+![](./output-384/0002/input.jpg)    |  ![](./output-384/0002/bitmap.jpg) |  ![](./output-384/0002/segmentated.jpg)
+![](./output-384/0001/input.jpg)    |  ![](./output-384/0001/bitmap.jpg) |  ![](./output-384/0001/segmentated.jpg)
