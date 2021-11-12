@@ -31,8 +31,10 @@ With the generated data, you can build next-level features, such as a detailed c
 3. Start the `tensorflow-serve` docker container with the mounted folder of the trained model.
 
 ```bash
-docker run -e MODEL_NAME=trained_model -p 8501:8501 -v ./trained_model:/models/trained_model/1 tensorflow/serving:2.1.4
-# or use the docker-compose.yml in the project.
+docker run -e MODEL_NAME=trained_model -p 8501:8501 -v "$(pwd)/trained_model:/models/trained_model/1" tensorflow/serving:2.1.4
+
+# or use the docker-compose.yml in the project via
+docker compose up
 ```
 
 3. Now you can make requests by sending the pixel data of 4 images to the server. You can find an example on how to do this in node.js in the [examples folder](./examples/nodejs-example.ts).
