@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   fashion-segmentation:
-    image: tensorflow/serving:2.1.4
+    image: tensorflow/serving:2.6.2
     ports:
       - "8501:8501"
     environment:
