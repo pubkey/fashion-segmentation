@@ -31,7 +31,7 @@ With the generated data, you can build next-level features, such as a detailed c
 3. Start the `tensorflow-serve` docker container with the mounted folder of the trained model.
 
 ```bash
-docker run -e MODEL_NAME=trained_model -p 8501:8501 -v "$(pwd)/trained_model:/models/trained_model/1" tensorflow/serving:2.1.4
+docker run -e MODEL_NAME=trained_model -p 8501:8501 -v "$(pwd)/trained_model:/models/trained_model/1" tensorflow/serving:2.6.2
 
 # or use the docker-compose.yml in the project via
 docker compose up
