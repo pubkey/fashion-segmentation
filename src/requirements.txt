@@ -1,0 +1,8 @@
+# TODO pin versions
+Flask
+flask-restplus
+Flask-Cors
+werkzeug==0.16.1
+tensorflow==2.7.0
+Pillow
+torchvision
