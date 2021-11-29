@@ -142,6 +142,7 @@ class Prediction(Resource):
         requestTmpFolder = os.path.join(
             app.config['Upload_folder'], requestFlag)
         args = upload_parser.parse_args()
+        print('args:')
         print(args)
 
         # save files to tmp dir
