@@ -35,7 +35,7 @@ const singeImageDimensions: Dimensions = {
  * When you decrease this value you have less false positives but more false negatives.
  * When you increase this value you have more false positives but less false negatives.
  */
-const activationSignal = -0.5;
+const activationSignal = -0.7;
 const serverUrl = 'http://localhost:5000/predict?minPredictionValue=' + activationSignal;
 
 async function run() {
