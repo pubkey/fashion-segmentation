@@ -28,6 +28,7 @@ print('#######################')
 
 print('# load tensorflow model')
 modelPath = os.path.join('/trained_model')
+print('# modelPath: ' + modelPath)
 model = tf.keras.models.load_model(modelPath)
 layers = model.layers
 first_layer = layers[0]
