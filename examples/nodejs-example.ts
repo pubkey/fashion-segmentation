@@ -7,9 +7,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import sharp, { Sharp } from 'sharp';
 import got from 'got';
-const FormData = require('form-data');
+import FormData from 'form-data';
 import { clearFolder, keyWithHighestValue } from './util';
 import { ColorRatio, Dimensions } from './types';
+import { Readable } from 'stream'
 const quantize = require('quantize');
 const rgbHex = require('rgb-hex');
 
@@ -59,13 +60,21 @@ async function run() {
 
         const form = new FormData();
         const inputImagePaths: string[] = [];
-        imageFileNames.forEach((imageFileName, idx) => {
-            const fileId = idx + 1;
-            const imagePath = path.join(imagesDir, imageFileName);
-            console.log('imagePath: ' + imagePath);
-            inputImagePaths.push(imagePath);
-            form.append('file' + fileId, fs.createReadStream(imagePath));
-        });
+        await Promise.all(
+            imageFileNames.map(async (imageFileName, idx) => {
+                const fileId = idx + 1;
+                const imagePath = path.join(imagesDir, imageFileName);
+                console.log('imagePath: ' + imagePath);
+                const sharpImage: Sharp = await sharp(imagePath);
+                const buffer = await sharpImage.toBuffer();
+                inputImagePaths.push(imagePath);
+                console.log('add file ' + fileId);
+                form.append('file' + fileId, buffer, {
+                    contentType: 'image/jpeg',
+                    filename: 'foobar' + fileId + '.jpeg'
+                });
+            })
+        );
 
         // used for debugging
         const inputImageBuffers: Buffer[] = [];

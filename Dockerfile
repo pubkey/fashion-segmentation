@@ -1,4 +1,3 @@
-# https://hub.docker.com/r/tensorflow/tensorflow/tags
 FROM python:3.9.9
 
 # install deps
@@ -18,7 +17,7 @@ COPY trained_model_compressed/trained_model.tar.bz2.partad /trained_model_compre
 COPY decompress-model.bash /decompress-model.bash
 RUN cd / && bash /decompress-model.bash
 RUN rm -rf /trained_model_compressed
-
+RUN ls /trained_model
 
 COPY src/server.py /server.py
 
