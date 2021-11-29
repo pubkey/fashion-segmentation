@@ -1,0 +1,19 @@
+fetch("http://localhost:5000/predict?minPredictionValue=-0.5&colorQuantizeCategories=5", {
+  "headers": {
+    "accept": "application/json",
+    "accept-language": "de,en;q=0.9,en-US;q=0.8,de-DE;q=0.7",
+    "cache-control": "no-cache",
+    "content-type": "multipart/form-data; boundary=----WebKitFormBoundaryDBJxkTmu6yNb3Un9",
+    "pragma": "no-cache",
+    "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"91\", \"Chromium\";v=\"91\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin"
+  },
+  "referrer": "http://localhost:5000/",
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "body": "------WebKitFormBoundaryDBJxkTmu6yNb3Un9\r\nContent-Disposition: form-data; name=\"file1\"; filename=\"max-sided-ZtpdtqZxFtb_0.jpg.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n\r\n------WebKitFormBoundaryDBJxkTmu6yNb3Un9\r\nContent-Disposition: form-data; name=\"file2\"; filename=\"max-sided-ZtpdtqZxFtb_3.jpg.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n\r\n------WebKitFormBoundaryDBJxkTmu6yNb3Un9\r\nContent-Disposition: form-data; name=\"file3\"; filename=\"max-sided-ZtpdtqZxFtb_2.jpg.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n\r\n------WebKitFormBoundaryDBJxkTmu6yNb3Un9\r\nContent-Disposition: form-data; name=\"file4\"; filename=\"max-sided-ZtpdtqZxFtb_0.jpg.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n\r\n------WebKitFormBoundaryDBJxkTmu6yNb3Un9--\r\n",
+  "method": "POST",
+  "mode": "cors"
+});

@@ -27,15 +27,10 @@ With the generated data, you can build next-level features, such as a detailed c
 # Usage
 
 1. Clone this github repository `git clone https://github.com/pubkey/fashion-segmentation.git`.
-2. Unzip the model files `bash decompress-model.bash`.
-3. Start the `tensorflow-serve` docker container with the mounted folder of the trained model.
+2. Build the image `docker build -t fashion-segmentation .`
+3. Start the container `docker run -it -p 5000:5000 fashion-segmentation`
 
-```bash
-docker run -e MODEL_NAME=trained_model -p 8501:8501 -v "$(pwd)/trained_model:/models/trained_model/1" tensorflow/serving:2.6.2
-
-# or use the docker-compose.yml in the project via
-docker compose up
-```
+Or use the docker-compose.yml in the project via `docker compose up`
 
 3. Now you can make requests by sending the pixel data of 4 images to the server. You can find an example on how to do this in node.js in the [examples folder](./examples/nodejs-example.ts).
 
@@ -45,9 +40,9 @@ docker compose up
 
 Input                      |  Output bitmap            |  Output segmentated       |
 :-------------------------:|:-------------------------:|:-------------------------:|
-![](./output/0002/input.jpg)    |  ![](./output/0002/bitmap.jpg) |  ![](./output/0002/segmentated.jpg)
-![](./output/0001/input.jpg)    |  ![](./output/0001/bitmap.jpg) |  ![](./output/0001/segmentated.jpg)
-![](./output/0003/input.jpg)    |  ![](./output/0003/bitmap.jpg) |  ![](./output/0003/segmentated.jpg)
+![](./output/0002/input.jpg)    |  ![](./output/0002/bitmap.jpg) |  ![](./output/0002/segmentated.png)
+![](./output/0001/input.jpg)    |  ![](./output/0001/bitmap.jpg) |  ![](./output/0001/segmentated.png)
+![](./output/0003/input.jpg)    |  ![](./output/0003/bitmap.jpg) |  ![](./output/0003/segmentated.png)
 
 Output colors example:
 

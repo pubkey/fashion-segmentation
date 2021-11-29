@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import sharp, { Sharp } from 'sharp';
 import got from 'got';
+const FormData = require('form-data');
 import { clearFolder, keyWithHighestValue } from './util';
 import { ColorRatio, Dimensions } from './types';
 const quantize = require('quantize');
@@ -28,12 +29,14 @@ const singeImageDimensions: Dimensions = {
 
 
 /**
- * Every pixel with a model output of more then the activation signal,
+ * Every pixel with a model output of less then the activation signal,
  * will be used in the bitmap and the color detection.
- * When you increase this value you have less false positives but more false negatives.
- * When you decrease this value you have more false positives but less false negatives.
+ * Value between -1 and 1.
+ * When you decrease this value you have less false positives but more false negatives.
+ * When you increase this value you have more false positives but less false negatives.
  */
-const activationSignal = 0.5;
+const activationSignal = -0.5;
+const serverUrl = 'http://localhost:5000/predict?minPredictionValue=' + activationSignal;
 
 async function run() {
     await clearFolder(allOutputDir);
@@ -51,54 +54,53 @@ async function run() {
             .readdirSync(imagesDir)
             .filter(name => name.endsWith('.jpg'));
         if (imageFileNames.length < 4) {
-            throw new Error('folder has too less images ' + imagesDir + ', you need at least 4 of them. (You can also copy the exisiting ones)');
+            throw new Error('folder(' + imagesDir + ') has too less images ' + imagesDir + ', you need at least 4 of them. (You can also copy the exisiting ones)');
         }
 
-        const imageBuffers = await Promise.all(
-            imageFileNames.map(async (imageFileName, idx) => {
-                const imagePath = path.join(imagesDir, imageFileName);
-                console.log('imagePath: ' + imagePath);
-                const image = await sharp(imagePath);
-                const resized = await resizeToDimension(image, singeImageDimensions);
+        const form = new FormData();
+        const inputImagePaths: string[] = [];
+        imageFileNames.forEach((imageFileName, idx) => {
+            const fileId = idx + 1;
+            const imagePath = path.join(imagesDir, imageFileName);
+            console.log('imagePath: ' + imagePath);
+            inputImagePaths.push(imagePath);
+            form.append('file' + fileId, fs.createReadStream(imagePath));
+        });
 
-                return resized.toBuffer();
-            })
-        );
-
-
-        const inputImageWidth = singleImageSize * 2;
-
-        /**
-         * blend images clockwise
-         * into a single image that contains all 4 images.
-         * This combined image can be send as input to the trained model.
-         */
+        // used for debugging
+        const inputImageBuffers: Buffer[] = [];
+        for (const imagePath of inputImagePaths) {
+            const image = await sharp(imagePath);
+            const resized = await resizeToDimension(image, singeImageDimensions);
+            const imageBuffer = await resized.toBuffer();
+            inputImageBuffers.push(imageBuffer);
+        }
         const endInputImage = sharp({
             create: {
-                width: inputImageWidth,
-                height: inputImageWidth,
+                width: singleImageSize * 2,
+                height: singleImageSize * 2,
                 background: 'white',
                 channels: 3
             }
         }).composite(
             [
                 {
-                    input: imageBuffers[0],
+                    input: inputImageBuffers[0],
                     top: 0,
                     left: 0
                 },
                 {
-                    input: imageBuffers[1],
+                    input: inputImageBuffers[1],
                     top: 0,
                     left: singleImageSize
                 },
                 {
-                    input: imageBuffers[2],
+                    input: inputImageBuffers[2],
                     top: singleImageSize,
                     left: 0
                 },
                 {
-                    input: imageBuffers[3],
+                    input: inputImageBuffers[3],
                     top: singleImageSize,
                     left: singleImageSize
                 }
@@ -107,88 +109,65 @@ async function run() {
             quality: 100,
             chromaSubsampling: '4:4:4'
         });
-
-        const endInputImageBuffer = await endInputImage
-            .clone()
-            .removeAlpha()
-            .raw()
-            .toBuffer();
-        const imageAsJson = imgToJson(endInputImageBuffer, inputImageWidth);
-
-        const tensorflowServerUrl = 'http://localhost:8501/v1/models/trained_model:predict';
-
-        let outputPixels: number[][] = [];
-        try {
-            const { body } = await got.post(tensorflowServerUrl, {
-                json: {
-                    instances: [{ 'input_1': imageAsJson }]
-                },
-                responseType: 'json'
-            }) as any;
-            console.log('# output from the model:');
-            outputPixels = body.predictions[0];
-        } catch (error) {
-            console.error('# request failed');
-            console.dir(error.response.body);
-            throw error;
-        }
-
-        const rawPixels: number[] = [];
-        outputPixels.forEach(row => {
-            row.forEach(nr => {
-                // transform 0-1 number to 0-255 rgb value
-                const val = 255 * nr;
-                rawPixels.push(val);
-                rawPixels.push(val);
-                rawPixels.push(val);
-            });
-        });
-
-
-        console.log('# save output bitmap');
-        const testOutputPath = path.join(outputDir, './bitmap.jpg');
-        await sharp(Buffer.from(rawPixels), {
-            raw: {
-                width: inputImageWidth,
-                height: inputImageWidth,
-                channels: 3
-            }
-        }).toFile(testOutputPath);
         await endInputImage.toFile(path.join(outputDir, './input.jpg'));
 
 
-        console.log('# get an image that only contains segmentated pixels');
-        const allSegmentatedPixels: [number, number, number][] = [];
-        const segmentationPixels: number[] = [];
-        let i = 0;
-        outputPixels.forEach(row => {
-            row.forEach(nr => {
-                if (nr > activationSignal) {
-                    segmentationPixels.push(255);
-                    segmentationPixels.push(255);
-                    segmentationPixels.push(255);
+        let segmentedImage: Sharp;
+        try {
+            const response = await got.post(serverUrl, {
+                body: form
+            }) as any;
+            segmentedImage = await sharp(response.rawBody);
+        } catch (error) {
+            console.error('# request failed');
+            console.dir(error.response);
+            throw error;
+        }
+
+        await segmentedImage.clone().toFile(path.join(outputDir, './segmentated.png'));
+        const imageMeta = await segmentedImage.metadata();
+        const buffer = await segmentedImage
+            .raw()
+            .toBuffer();
+
+        // contains all pixels with an alpha channel value of 255
+        const segmentatedPixels: number[][] = [];
+        // contains all segmentatedPixels but only as black or white
+        const bitmapPixels: number[] = [];
+        let b = 0;
+        for (let h = 0; h < imageMeta.width; h++) {
+            for (let w = 0; w < imageMeta.height; w++) {
+                const rgb = [
+                    buffer[b++],
+                    buffer[b++],
+                    buffer[b++]
+                ];
+                const alpha = buffer[b++];
+                if (alpha === 255) {
+                    bitmapPixels.push(0);
+                    bitmapPixels.push(0);
+                    bitmapPixels.push(0);
+                    segmentatedPixels.push(rgb);
                 } else {
-                    segmentationPixels.push(endInputImageBuffer[i]);
-                    segmentationPixels.push(endInputImageBuffer[i + 1]);
-                    segmentationPixels.push(endInputImageBuffer[i + 2]);
-                    allSegmentatedPixels.push([
-                        endInputImageBuffer[i],
-                        endInputImageBuffer[i + 1],
-                        endInputImageBuffer[i + 2]
-                    ]);
+                    bitmapPixels.push(255);
+                    bitmapPixels.push(255);
+                    bitmapPixels.push(255);
                 }
-                i = i + 3;
-            });
-        });
-        await sharp(Buffer.from(segmentationPixels), {
+            }
+        }
+
+        console.log('# save output bitmap');
+        const bitmapPath = path.join(outputDir, './bitmap.jpg');
+        await sharp(Buffer.from(bitmapPixels), {
             raw: {
-                width: inputImageWidth,
-                height: inputImageWidth,
+                width: imageMeta.width,
+                height: imageMeta.height,
                 channels: 3
             }
-        }).toFile(path.join(outputDir, './segmentated.jpg'));
+        }).toFile(bitmapPath);
 
-        const colorRatio = await quantizeColorsOfPixels(allSegmentatedPixels);
+
+        const colorRatio = await quantizeColorsOfPixels(segmentatedPixels);
         fs.writeFileSync(
             path.join(outputDir, 'colors.json'),
             JSON.stringify(colorRatio, null, 4),
@@ -225,34 +204,6 @@ export async function resizeToDimension(
             chromaSubsampling: '4:4:4'
         })
 }
-
-/**
- * the tensorflow server needs the images as json pixels
- * @link https://stackoverflow.com/a/58674728/3443137
- */
-function imgToJson(buffer: Buffer, inputImageWidth: number): any[] {
-    const decoded: any[] = [];
-    let b = 0;
-    for (let h = 0; h < inputImageWidth; h++) {
-        let line: any[] = [];
-        for (let w = 0; w < inputImageWidth; w++) {
-            let pixel: any[] = [];
-
-            /**
-             * We need to transform the 0-255 rgb value
-             * so a range between -1 and 1 for the model input
-             */
-            pixel.push((buffer[b++] / 127.5) - 1); /* r */
-            pixel.push((buffer[b++] / 127.5) - 1); /* g */
-            pixel.push((buffer[b++] / 127.5) - 1); /* b */
-
-            line.push(pixel);
-        }
-        decoded.push(line);
-    }
-    return decoded;
-}
-
 
 /**
  * Read out and cluster all non-transparent pixels of the image.

@@ -5,6 +5,11 @@ FROM python:3.9.9
 COPY src/requirements.txt /requirements.txt
 RUN pip3 install --no-cache-dir -r /requirements.txt
 
+# show new requirements versions
+RUN pip3 freeze > /requirements.txt
+RUN cat /requirements.txt
+
+
 # decompress the model files
 COPY trained_model_compressed/trained_model.tar.bz2.partaa /trained_model_compressed/trained_model.tar.bz2.partaa
 COPY trained_model_compressed/trained_model.tar.bz2.partab /trained_model_compressed/trained_model.tar.bz2.partab

@@ -3,24 +3,45 @@
 
 import werkzeug
 from flask import Flask, jsonify, request, send_file
-from flask_restplus import Resource, Api, reqparse
+from flask_restplus import Resource, Api
 import tensorflow as tf
 from werkzeug.datastructures import FileStorage
 import os
+import base64
 import string
 import math
+import io
 import random
 from PIL import Image
 import shutil
 import numpy as np
 import torchvision.transforms as transforms
 import time
+from sklearn.cluster import KMeans
+
+print('#######################')
+print('#######################')
+print('Starting server.py')
+print('#######################')
+print('#######################')
+
+
+print('# load tensorflow model')
+modelPath = os.path.join('/trained_model')
+model = tf.keras.models.load_model(modelPath)
+layers = model.layers
+first_layer = layers[0]
+inputImageSize = int(first_layer.input_shape[0][1] / 2)
+print('inputImageSize: ' + str(inputImageSize))
+
 
 app = Flask(__name__)
 api = Api(app)
 
+
 def error(msg):
     return jsonify({'error': msg})
+
 
 def get_random_string(length):
     # choose from all lowercase letter
@@ -31,15 +52,28 @@ def get_random_string(length):
 
 
 upload_parser = api.parser()
-upload_parser.add_argument('file1', location='files', type=FileStorage, required=True)
-upload_parser.add_argument('file2', location='files', type=FileStorage, required=False)
-upload_parser.add_argument('file3', location='files', type=FileStorage, required=False)
-upload_parser.add_argument('file4', location='files', type=FileStorage, required=False)
+upload_parser.add_argument('file1', location='files',
+                           type=FileStorage, required=True)
+upload_parser.add_argument('file2', location='files',
+                           type=FileStorage, required=False)
+upload_parser.add_argument('file3', location='files',
+                           type=FileStorage, required=False)
+upload_parser.add_argument('file4', location='files',
+                           type=FileStorage, required=False)
+upload_parser.add_argument(
+    'minPredictionValue',
+    location='args',
+    type=float,
+    required=True,
+    default=-0.5,
+    help='the minimal value that must be reached in the model ouput to make a pxiel appear in the segmentation. Value between -1 and 1'
+)
 
 app.config['Upload_folder'] = os.path.join('/upload_tmp/')
 print('Upload dir: ' + app.config['Upload_folder'])
 if not os.path.exists(app.config['Upload_folder']):
-  os.makedirs(app.config['Upload_folder'])
+    os.makedirs(app.config['Upload_folder'])
+
 
 @api.route('/hello')
 class HelloWorld(Resource):
@@ -47,65 +81,66 @@ class HelloWorld(Resource):
         return {'hello': 'world'}
 
 
-
-inputImageSize = 128
-
 def resizeImageToFitIntoInputImageSize(image):
-  image_size = image.size
-  isWidth = image_size[0]
-  isHeight = image_size[1]
-  portion = isWidth / isHeight
-  newWidth = isWidth
-  newHeight = isHeight
+    image_size = image.size
+    isWidth = image_size[0]
+    isHeight = image_size[1]
+    portion = isWidth / isHeight
+    newWidth = isWidth
+    newHeight = isHeight
 
-  if isHeight > isWidth:
-    newHeight = inputImageSize
-    newWidth = math.ceil(portion * newHeight)
-  else: 
-    newWidth = inputImageSize
-    newHeight = math.ceil(newWidth / portion)
+    if isHeight > isWidth:
+        newHeight = inputImageSize
+        newWidth = math.ceil(portion * newHeight)
+    else:
+        newWidth = inputImageSize
+        newHeight = math.ceil(newWidth / portion)
 
-  imageThatFitsIntoBox = image.resize((newWidth, newHeight), Image.ANTIALIAS)
-  # imageThatFitsIntoBox.save(os.path.join(app.config['Upload_folder'], str(time.time()) + get_random_string(4) + '-intobox.jpg'))
-  return imageThatFitsIntoBox
+    imageThatFitsIntoBox = image.resize((newWidth, newHeight), Image.ANTIALIAS)
+    # imageThatFitsIntoBox.save(os.path.join(app.config['Upload_folder'], str(time.time()) + get_random_string(4) + '-intobox.jpg'))
+    return imageThatFitsIntoBox
+
 
 def resizeImage(image_file):
-  # resize image
-  # https://stackoverflow.com/a/44371790/3443137
-  image = Image.open(image_file)
-  image = resizeImageToFitIntoInputImageSize(image)
-  image_size = image.size
-  width = image_size[0]
-  height = image_size[1]
+    # resize image
+    # https://stackoverflow.com/a/44371790/3443137
+    image = Image.open(image_file)
+    image = resizeImageToFitIntoInputImageSize(image)
+    image_size = image.size
+    width = image_size[0]
+    height = image_size[1]
 
-  background = Image.new('RGB', (inputImageSize, inputImageSize), (255, 255, 255))
-  offset = (int(round(((inputImageSize - width) / 2), 0)), int(round(((inputImageSize - height) / 2),0)))
-  background.paste(image, offset)
+    background = Image.new(
+        'RGB', (inputImageSize, inputImageSize), (255, 255, 255))
+    offset = (int(round(((inputImageSize - width) / 2), 0)),
+              int(round(((inputImageSize - height) / 2), 0)))
+    background.paste(image, offset)
 
-  return background
+    return background
+
 
 def mergeImages(images):
-  background = Image.new('RGB', (inputImageSize * 2, inputImageSize * 2), (255, 255, 255))
-  background.paste(images[0], (0, 0))
-  background.paste(images[1], (0, inputImageSize))
-  background.paste(images[2], (inputImageSize, 0))
-  background.paste(images[3], (inputImageSize, inputImageSize))
-  return background
+    background = Image.new(
+        'RGB', (inputImageSize * 2, inputImageSize * 2), (255, 255, 255))
+    background.paste(images[0], (0, 0))
+    background.paste(images[1], (inputImageSize, 0))
+    background.paste(images[2], (0, inputImageSize))
+    background.paste(images[3], (inputImageSize, inputImageSize))
+    return background
+
 
 def normalizeSingle(input_image):
-  input_image = (input_image / 127.5) - 1
-  return input_image
+    input_image = (input_image / 127.5) - 1
+    return input_image
 
-
-modelPath = os.path.join('/trained_model')
-model = tf.keras.models.load_model(modelPath)
 
 @api.route('/predict')
 @api.expect(upload_parser)
 class Prediction(Resource):
     def post(self):
         requestFlag = str(time.time())
-        requestTmpFolder = os.path.join(app.config['Upload_folder'], requestFlag)
+        requestTmpFolder = os.path.join(
+            app.config['Upload_folder'], requestFlag)
         args = upload_parser.parse_args()
         print(args)
 
@@ -121,18 +156,17 @@ class Prediction(Resource):
 
         while len(uploadedImages) < 4:
             uploadedImages.append(args['file1'])
-        
+
         imagePaths = []
         for i in range(len(uploadedImages)):
             uploadedImage = uploadedImages[i]
             imagePath = os.path.join(requestTmpFolder, str(i) + '.jpg')
             uploadedImage.save(imagePath)
             imagePaths.append(imagePath)
-      
 
         resized = []
         for imagePath in imagePaths:
-          resized.append(resizeImage(imagePath))
+            resized.append(resizeImage(imagePath))
 
         merged = mergeImages(resized)
         mergedPath = os.path.join(requestTmpFolder, 'merged.jpg')
@@ -147,16 +181,12 @@ class Prediction(Resource):
         prediction = model(modelInputImage, training=False)
         predictionAr = prediction.numpy()
 
-        print(predictionAr[0])
-        print(len(predictionAr[0]))
-
-
-        minPredictionValue = 0.1
+        minPredictionValue = args['minPredictionValue']
+        print('minPredictionValue: ' + str(minPredictionValue))
         inputImage = Image.open(mergedPath)
         inputPixels = np.asarray(inputImage)
-        print('input pixels:')
-        print(inputPixels)
-        allPixels = np.zeros((inputImageSize * 2, inputImageSize * 2, 4), dtype=np.uint8)
+        allPixels = np.zeros(
+            (inputImageSize * 2, inputImageSize * 2, 4), dtype=np.uint8)
         usedPixels = 0
         for rowIdx in range(len(predictionAr[0])):
             predictionRow = predictionAr[0][rowIdx]
@@ -179,18 +209,26 @@ class Prediction(Resource):
         else:
             print('usedPixels: ' + str(usedPixels))
 
-
         # print(allPixels)
         predictionImage = Image.fromarray(allPixels, 'RGBA')
         predictionPath = os.path.join(requestTmpFolder, 'prediction.png')
         predictionImage.save(predictionPath)
 
-        
 
-        return send_file(predictionPath, mimetype='image/png')
+        # put image into memory so we can clean up and still have the image
+        # https://www.dreamincode.net/forums/topic/420456-sending-image-as-response-with-flask/
+        file_object = io.BytesIO()
+        predictionImage.save(file_object, 'png')
+        file_object.seek(0)
 
         # clean up
-        # shutil.rmtree(requestTmpFolder)
+        shutil.rmtree(requestTmpFolder)
+
+        return send_file(
+            file_object,
+            attachment_filename='prediction.jpg',
+            mimetype='image/png'
+        )
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
