@@ -1,11 +1,13 @@
 {
   "name": "fashion-segmentation",
   "version": "1.0.0",
+  "private": "true",
   "description": "Detect which pixels of your product images actually belong to the product. We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated.",
   "main": "index.js",
   "directories": {
     "doc": "docs",
-    "test": "test"
+    "test": "test",
+    "dev": "sh dev.sh"
   },
   "scripts": {
     "test": "ts-node examples/nodejs-example.ts"

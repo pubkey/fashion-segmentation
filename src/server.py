@@ -1,23 +1,21 @@
 # https://flask-restplus.readthedocs.io/en/stable/quickstart.html#initialization
 # https://github.com/hiepph/cgan-face-generator/blob/master/server.py
 
-import werkzeug
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, send_file
 from flask_restplus import Resource, Api
 import tensorflow as tf
 from werkzeug.datastructures import FileStorage
 import os
-import base64
 import string
 import math
 import io
 import random
-from PIL import Image
 import shutil
 import numpy as np
 import torchvision.transforms as transforms
 import time
 from sklearn.cluster import KMeans
+from PIL import Image
 
 print('#######################')
 print('#######################')
@@ -102,10 +100,9 @@ def resizeImageToFitIntoInputImageSize(image):
     return imageThatFitsIntoBox
 
 
-def resizeImage(image_file):
+def resizeImage(image):
     # resize image
     # https://stackoverflow.com/a/44371790/3443137
-    image = Image.open(image_file)
     image = resizeImageToFitIntoInputImageSize(image)
     image_size = image.size
     width = image_size[0]
@@ -159,16 +156,19 @@ class Prediction(Resource):
         while len(uploadedImages) < 4:
             uploadedImages.append(args['file1'])
 
-        imagePaths = []
+        images = []
         for i in range(len(uploadedImages)):
             uploadedImage = uploadedImages[i]
-            imagePath = os.path.join(requestTmpFolder, str(i) + '.jpg')
-            uploadedImage.save(imagePath)
-            imagePaths.append(imagePath)
+            pilImage = Image.open(uploadedImage)
+            images.append(pilImage)
+            
+            # uncomment to debug
+            # imagePath = os.path.join(requestTmpFolder, str(i) + '.jpg')
+            # pilImage.save(imagePath, 'jpeg')
 
         resized = []
-        for imagePath in imagePaths:
-            resized.append(resizeImage(imagePath))
+        for image in images:
+            resized.append(resizeImage(image))
 
         merged = mergeImages(resized)
         mergedPath = os.path.join(requestTmpFolder, 'merged.jpg')
@@ -216,7 +216,6 @@ class Prediction(Resource):
         predictionPath = os.path.join(requestTmpFolder, 'prediction.png')
         predictionImage.save(predictionPath)
 
-
         # put image into memory so we can clean up and still have the image
         # https://www.dreamincode.net/forums/topic/420456-sending-image-as-response-with-flask/
         file_object = io.BytesIO()
@@ -231,6 +230,7 @@ class Prediction(Resource):
             attachment_filename='prediction.jpg',
             mimetype='image/png'
         )
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
