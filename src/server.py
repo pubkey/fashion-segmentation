@@ -1,6 +1,7 @@
 # https://flask-restplus.readthedocs.io/en/stable/quickstart.html#initialization
 # https://github.com/hiepph/cgan-face-generator/blob/master/server.py
 
+from waitress import serve
 from flask import Flask, jsonify, send_file
 from flask_restplus import Resource, Api
 import tensorflow as tf
@@ -233,4 +234,5 @@ class Prediction(Resource):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    serve(app, host="0.0.0.0", port=5000)
+    # app.run(debug=False, host='0.0.0.0', port=5000)
