@@ -57,7 +57,7 @@ Output colors example:
 
 # Get a better trained higher resolution model
 
-In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [buy it from me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives.
+In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [buy it from me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives. It was trained on 3 times more training data.
 
 ## Example output of the bigger model
 
