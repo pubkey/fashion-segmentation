@@ -1,7 +1,7 @@
 # fashion-segmentation
 
 Detect which pixels of your product images actually belong to the product.
-We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated. In the following image you can see that the person wears a jacked, a t-shirt and a jeans. But only with all 4 images, it is clear to the network that the jacked must be segmentated.
+We use up to 4 images as input because on many fashion images, you need multiple images as context to know which fashion item must be segmentated. In the following image you can see that the person wears a jacket, a t-shirt and a jeans. But only with all 4 images, it is clear to the network that the jacket must be segmentated.
 
 <p align="center">
     <img src="./docs/images/fashion-segmentation-input-output.jpg" alt="fashion segmentation input output" />
@@ -57,7 +57,7 @@ Output colors example:
 
 # Get a better trained higher resolution model
 
-In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [buy it from me](https://gitter.im/pubkey/). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives. It was trained on 3 times more training data.
+In this repo you can find the low resolution (128x128) model that can be used for testing it out. To get access to the better trained model with higher resolution input images, you can [buy it from me](https://twitter.com/pubkeypubkey). The higher resolution model gives a more detailed output and is able to better detect the shapes and surface of the fashion item which reduces false positives. It was trained on 3 times more training data.
 
 ## Example output of the bigger model
 
